@@ -13,6 +13,6 @@ defmodule Sample do
 
   """
   def hello do
-    :world
+    :hello
   end
 end
