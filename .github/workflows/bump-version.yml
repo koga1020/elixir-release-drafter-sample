@@ -1,0 +1,58 @@
+
+name: Bump Version
+on:
+  release:
+    types: [released]
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: get latest release
+        uses: actions/github-script@v6
+        id: latest-release
+        with: 
+          script: |
+            const release = await github.rest.repos.getLatestRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+
+            return release.data;
+      - name: delete tag
+        run: |
+            TAG_NAME=${{ fromJson(steps.latest-release.outputs.result).tag_name}}
+            git tag -d $TAG_NAME
+            git push --delete origin $TAG_NAME
+
+      - name: commit VERSION
+        run: |
+          set -ex
+          TAG_NAME=${{ fromJson(steps.latest-release.outputs.result).tag_name}}
+        
+          echo -n $TAG_NAME | sed -e "s/v//" > VERSION
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add VERSION
+          git commit -m "bump version"
+          git push origin HEAD:main
+          git tag $TAG_NAME
+          git push origin $TAG_NAME 
+
+      - name: update release
+        uses: actions/github-script@v6
+        env:
+          RELEASE_ID: ${{ fromJson(steps.latest-release.outputs.result).id}}
+          TAG_NAME: ${{ fromJson(steps.latest-release.outputs.result).tag_name}}
+        with:
+          script: |
+            const { RELEASE_ID, TAG_NAME } = process.env
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: RELEASE_ID,
+              draft: false,
+              tag_name: TAG_NAME
+            });
