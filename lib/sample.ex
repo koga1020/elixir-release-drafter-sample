@@ -17,7 +17,7 @@ defmodule Sample do
   end
 
   def greet(:hi) do
-    :hi
+    :hello
+    nil
   end
-
 end
