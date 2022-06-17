@@ -12,7 +12,7 @@ defmodule Sample do
       :world
 
   """
-  def hello do
+  def greet do
     :hello
   end
 end
