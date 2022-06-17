@@ -15,4 +15,9 @@ defmodule Sample do
   def greet do
     :hello
   end
+
+  def greet(:hi) do
+    :hi
+  end
+
 end
